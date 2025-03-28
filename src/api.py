@@ -46,3 +46,20 @@ def create_todo(user_todo: Todo):
         print(f"Got error trying to write to datafile: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+@app.post("/delete-todo/{id}")
+def delete_todo(id: int):
+    try:
+        todos = read_data()
+        
+        updated_todos = [todo for todo in todos if todo["ID"] != id]
+        
+        if len(updated_todos) == len(todos):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Todo with ID {id} not found")
+        
+        write_data(updated_todos)
+
+        return status.HTTP_200_OK
+    
+    except Exception as e:
+        print("Got error trying to delete todo from datafile: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
