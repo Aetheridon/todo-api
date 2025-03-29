@@ -1,10 +1,11 @@
 import json
 import uuid
 import sys
+import traceback
 
 from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel, Field
-from typing import Dict
+from pydantic import BaseModel
+from typing import Optional
 
 app = FastAPI()
 PATH = "todos.json" # make this universal
@@ -12,6 +13,10 @@ PATH = "todos.json" # make this universal
 class Todo(BaseModel):
     todo: str
     complete_by: str
+
+class TodoUpdate(BaseModel):
+    todo: Optional[str] = None
+    complete_by: Optional[str] = None
 
 def read_data():
     try:
@@ -62,4 +67,37 @@ def delete_todo(id: int):
     
     except Exception as e:
         print("Got error trying to delete todo from datafile: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@app.post("/edit-todo/{id}")
+def edit_todo(id: int, todo_update: TodoUpdate):
+    try:
+        todos = read_data()
+        todo_found = False
+
+        for todo in todos:
+            if todo["ID"] == id: #TODO: fucks up if just 1 item in todos
+                if todo_update.todo is not None:
+                    todo["todo"] = todo_update.todo
+
+                if todo_update.complete_by is not None:
+                    todo["complete_by"] = todo_update.complete_by
+
+                todo_found = True
+                break
+        
+        if not todo_found:
+            print("todo not found!")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        
+        if todo_update.todo is None and todo_update.complete_by is None:
+            print("no new values supplied to update todo with!")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+        
+        write_data(todos)
+        return {"message": f"Todo with ID {id} updated successfully"}
+    
+    except Exception as e:
+        print(f"got error trying to edit todo: {e}")
+        traceback.print_exc()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
