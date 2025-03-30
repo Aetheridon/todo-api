@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 app = FastAPI()
-PATH = "todos.json" # make this universal
+PATH = "todos.json"
 
 class Todo(BaseModel):
     todo: str
@@ -85,7 +85,7 @@ def edit_todo(id: int, todo_update: TodoUpdate):
         todo_found = False
 
         for todo in todos:
-            if todo["ID"] == id: #TODO: fucks up if just 1 item in todos
+            if todo["ID"] == id:
                 if todo_update.todo is not None:
                     todo["todo"] = todo_update.todo
 
