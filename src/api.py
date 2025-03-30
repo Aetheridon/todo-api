@@ -1,7 +1,5 @@
 import json
-import uuid
 import sys
-import traceback
 
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
@@ -22,9 +20,9 @@ def read_data():
     try:
         with open(PATH, "r") as f:
             todos = json.load(f)
-            
+
         return todos
-    
+
     except Exception as e:
         print("Got error trying to read data: {e}")
         sys.exit()
@@ -42,6 +40,7 @@ def view_todos():
 def create_todo(user_todo: Todo):
     try:
         todos = read_data()
+
         todos.append({"ID": len(todos) + 1, "todo": user_todo.todo, "complete_by": user_todo.complete_by})
         write_data(todos)
 
@@ -55,6 +54,9 @@ def create_todo(user_todo: Todo):
 def delete_todo(id: int):
     try:
         todos = read_data()
+
+        if len(todos) == 0:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="no todos in datafile!")
         
         updated_todos = [todo for todo in todos if todo["ID"] != id]
         
@@ -65,14 +67,21 @@ def delete_todo(id: int):
 
         return status.HTTP_200_OK
     
+    except HTTPException as e:
+        raise e
+
     except Exception as e:
-        print("Got error trying to delete todo from datafile: {e}")
+        print(f"Got error trying to delete todo from datafile: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 @app.post("/edit-todo/{id}")
 def edit_todo(id: int, todo_update: TodoUpdate):
     try:
         todos = read_data()
+
+        if len(todos) == 0:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="no todos in datafile!")
+
         todo_found = False
 
         for todo in todos:
@@ -97,7 +106,9 @@ def edit_todo(id: int, todo_update: TodoUpdate):
         write_data(todos)
         return {"message": f"Todo with ID {id} updated successfully"}
     
+    except HTTPException as e:
+        raise e
+
     except Exception as e:
         print(f"got error trying to edit todo: {e}")
-        traceback.print_exc()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
