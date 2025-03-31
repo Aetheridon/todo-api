@@ -4,7 +4,7 @@ basic API that interacts with a database (currently a JSON file)
 ### Setup Instructions
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/todo-api.git
+git clone https://github.com/Aetheridon/todo-api.git
 cd todo-api
 ```
 
