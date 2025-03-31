@@ -24,3 +24,5 @@ pip install -r requirements.txt
 cd src
 uvicorn api:app --reload
 ```
+
+The API can now be interacted with at http://127.0.0.1:8000/docs#/
